@@ -32,8 +32,9 @@ function updateVersionFile() {
   fi
 
   # Modify the downloaded file to update the chips-app and chips-apache versions
-  sed -i "s/chips-app:.*/chips-app:${CHIPS_APP_VERSION}/" ${LOCAL_VERSION_FILE}
-  sed -i 's/chips-apache:.*/chips-apache:'${CHIPS_APACHE_VERSION}'/' ${LOCAL_VERSION_FILE}
+  # We use a comma as the separator in sed to avoid issues with slashes in the image repository names
+  sed -i "s,CHIPS_APP_IMAGE=.*,CHIPS_APP_IMAGE=${CHIPS_APP_REPOSITORY}:${CHIPS_APP_VERSION}," ${LOCAL_VERSION_FILE}
+  sed -i "s,CHIPS_APACHE_IMAGE=.*,CHIPS_APACHE_IMAGE=${CHIPS_APACHE_REPOSITORY}:${CHIPS_APACHE_VERSION}," ${LOCAL_VERSION_FILE}
 
   echo "New ${LOCAL_VERSION_FILE}:"
   cat ${LOCAL_VERSION_FILE}
@@ -45,15 +46,17 @@ function updateVersionFile() {
   rm -f ${LOCAL_VERSION_FILE}
 }
 
-if [ "$#" -ne 3 ]
+if [ "$#" -ne 5 ]
 then
-  echo "Invalid number of arguments - expected three arguments: <env name> <chips-app image version> <chips-apache image version>"
+  echo "Invalid number of arguments - expected five arguments: <env name> <chips-app image version> <chips-apache image version> <chips-app repository> <chips-apache repository>"
   exit 1
 fi
 
 ENV_NAME=$1
 CHIPS_APP_VERSION=$2
 CHIPS_APACHE_VERSION=$3
+CHIPS_APP_REPOSITORY=$4
+CHIPS_APACHE_REPOSITORY=$5
 
 # Set up TMP folder specific to this script and environment
 TMP=/var/tmp/update-app-image-versions/${ENV_NAME}
